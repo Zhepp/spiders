@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SPIDERS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #e3000f;
+      --red-dim: #8b0008;
+      --red-glow: rgba(227,0,15,0.15);
+      --bg: #080808;
+      --bg2: #0e0e0e;
+      --surface: #111111;
+      --border: #1f1f1f;
+      --text: #d4d4d4;
+      --text-dim: #555;
+      --white: #f0f0f0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--red);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 32px; height: 32px;
+      border: 1px solid var(--red);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: all 0.12s ease;
+      opacity: 0.5;
+    }
+    body:hover .cursor { opacity: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--red-dim); }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 60px;
+      background: linear-gradient(to bottom, rgba(8,8,8,0.98) 0%, transparent 100%);
+    }
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--red);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--red); }
+
+    /* HERO */
+    #home {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Spider web SVG bg */
+    .web-bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      padding: 0 20px;
+    }
+
+    .hero-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 6px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(52px, 17vw, 80px);
+      font-weight: 800;
+      line-height: 0.9;
+      color: var(--white);
+      letter-spacing: -4px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-title span { color: var(--red); }
+
+    .hero-sub {
+      margin-top: 32px;
+      font-size: 14px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      max-width: 420px;
+      margin-left: auto; margin-right: auto;
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.7s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 52px;
+      display: flex; gap: 16px; justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+
+    .btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      text-decoration: none;
+      transition: all 0.25s;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: var(--red);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #ff0011;
+      box-shadow: 0 0 30px rgba(227,0,15,0.4);
+      transform: translateY(-2px);
+    }
+    .btn-outline {
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn-outline:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      opacity: 0;
+      animation: fadeUp 0.8s 1.2s forwards;
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--red), transparent);
+      animation: pulse 2s infinite;
+    }
+
+    /* RED DIVIDER LINE */
+    .divider {
+      width: 60px; height: 1px;
+      background: var(--red);
+      margin: 0 auto 48px;
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 120px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+
+    .section-body {
+      font-size: 15px;
+      line-height: 1.9;
+      color: var(--text);
+      max-width: 600px;
+    }
+
+    /* ABOUT */
+    #about {
+      position: relative;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+      margin-top: 64px;
+    }
+
+    .about-text .section-body { max-width: 100%; }
+
+    .about-values {
+      display: flex; flex-direction: column; gap: 0;
+    }
+
+    .value-item {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 20px; align-items: flex-start;
+    }
+    .value-item:first-child { border-top: 1px solid var(--border); }
+
+    .value-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--red);
+      min-width: 24px;
+      margin-top: 2px;
+    }
+
+    .value-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .value-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* FOUNDER TAG */
+    .founder-tag {
+      margin-top: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .founder-dot {
+      width: 8px; height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .founder-info { display: flex; flex-direction: column; gap: 2px; }
+    .founder-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 2px;
+    }
+    .founder-role {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+    }
+    .stat {
+      flex: 1;
+      padding: 0 40px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:first-child { padding-left: 0; }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+    }
+    .stat-num span { color: var(--red); }
+    .stat-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+
+    /* CONTACT */
+    #contact { max-width: 700px; }
+
+    .contact-intro {
+      font-size: 15px;
+      line-height: 1.9;
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+
+    .contact-form {
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 14px 16px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.25s;
+      resize: none;
+      -webkit-appearance: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--red);
+    }
+    .form-group select option { background: var(--bg); }
+
+    .form-submit {
+      margin-top: 8px;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-left {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+    .footer-left span { color: var(--red); }
+    .footer-right {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      background: var(--surface);
+      border: 1px solid var(--red);
+      color: var(--white);
+      padding: 16px 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Reveal on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+      .nav-links { gap: 24px; }
+      section { padding: 80px 24px; }
+      .about-grid { grid-template-columns: 1fr; gap: 48px; }
+      .stats-bar { padding: 32px 24px; flex-wrap: wrap; gap: 32px; }
+      .stat { border-right: none; padding: 0; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 16px; text-align: center; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">SPIDERS</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Join Us</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="home" style="padding:0; max-width:100%;">
+    <!-- Spider web SVG background -->
+    <svg class="web-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice">
+      <!-- Radial lines -->
+      <g stroke="#e3000f" stroke-width="0.5" fill="none">
+        <line x1="400" y1="400" x2="400" y2="0"/>
+        <line x1="400" y1="400" x2="738" y2="100"/>
+        <line x1="400" y1="400" x2="800" y2="400"/>
+        <line x1="400" y1="400" x2="738" y2="700"/>
+        <line x1="400" y1="400" x2="400" y2="800"/>
+        <line x1="400" y1="400" x2="62" y2="700"/>
+        <line x1="400" y1="400" x2="0" y2="400"/>
+        <line x1="400" y1="400" x2="62" y2="100"/>
+        <!-- Concentric rings approximated as polygons -->
+        <polygon points="400,50 723,225 723,575 400,750 77,575 77,225"/>
+        <polygon points="400,130 662,272 662,528 400,670 138,528 138,272"/>
+        <polygon points="400,210 601,319 601,481 400,590 199,481 199,319"/>
+        <polygon points="400,290 540,366 540,434 400,510 260,434 260,366"/>
+        <polygon points="400,340 494,373 494,427 400,460 306,427 306,373"/>
+      </g>
+    </svg>
+
+    <div class="hero-content">
+      <p class="hero-label">Est. Community — Security & Privacy</p>
+      <h1 class="hero-title">SPID<span>E</span>RS</h1>
+      <p class="hero-sub">A community of ethical hackers. We move in the dark, but we protect the light.</p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn btn-primary">Join the Network</a>
+        <a href="#about" class="btn btn-outline">Learn More</a>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar reveal">
+    <div class="stat">
+      <div class="stat-num">100<span>+</span></div>
+      <div class="stat-label">Active Members</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0<span>%</span></div>
+      <div class="stat-label">Illegal Activity</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24<span>/7</span></div>
+      <div class="stat-label">Always Online</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Privacy First</div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <p class="section-label reveal">/ About Us</p>
+    <h2 class="section-title reveal">We are the<br/>spiders in<br/><span style="color:var(--red)">the web.</span></h2>
+
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p class="section-body">
+          SPIDERS is a futuristic hacking community built on one principle: knowledge is power, and power must be used responsibly. We explore systems, break barriers, and understand the digital world — always within ethical and legal boundaries.
+        </p>
+        <p class="section-body" style="margin-top:20px;">
+          We collaborate with governments and security institutions to make the digital space safer. What we do is not vandalism — it's architecture.
+        </p>
+
+        <div class="founder-tag reveal" style="margin-top:40px;">
+          <div class="founder-dot"></div>
+          <div class="founder-info">
+            <div class="founder-name">ZHEPP</div>
+            <div class="founder-role">Founder & Community Lead</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-values reveal">
+        <div class="value-item">
+          <div class="value-num">01</div>
+          <div>
+            <div class="value-title">Privacy Above All</div>
+            <div class="value-desc">We guard data like life itself. No surveillance. No leaks. No compromise on anonymity.</div>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-num">02</div>
+          <div>
+            <div class="value-title">Strictly Ethical</div>
+            <div class="value-desc">Zero tolerance for illegal activity — unless called upon by authorities for a greater purpose.</div>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-num">03</div>
+          <div>
+            <div class="value-title">Knowledge Sharing</div>
+            <div class="value-desc">We grow together. Seniors mentor newcomers. The web is strongest when every thread is tight.</div>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-num">04</div>
+          <div>
+            <div class="value-title">Futurist Mindset</div>
+            <div class="value-desc">We think 10 steps ahead. Security is not reactive — it's a living, evolving system.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <p class="section-label reveal">/ Join Us</p>
+    <h2 class="section-title reveal">Enter the<br/><span style="color:var(--red)">Network.</span></h2>
+    <p class="contact-intro reveal">
+      We don't recruit. We attract. If you found us, you already know you belong here. Fill out the form — we'll be in touch.
+    </p>
+
+    <div class="contact-form reveal">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Handle / Alias</label>
+          <input type="text" placeholder="e.g. ghost_zero" id="handle"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" placeholder="you@domain.com" id="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Skill Domain</label>
+        <select id="skill">
+          <option value="" disabled selected>— Select your specialty —</option>
+          <option>Penetration Testing</option>
+          <option>Reverse Engineering</option>
+          <option>Network Security</option>
+          <option>OSINT</option>
+          <option>Malware Analysis</option>
+          <option>CTF / Competitive</option>
+          <option>Privacy & Anonymity</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Why do you want to join?</label>
+        <textarea rows="5" placeholder="Tell us about yourself..." id="msg"></textarea>
+      </div>
+      <div class="form-submit">
+        <button class="btn btn-primary" onclick="submitForm()" style="border:none; cursor:none;">
+          Send Request →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">SPIDERS © 2025 — <span>Zhepp</span></div>
+    <div class="footer-right">Privacy is not a feature. It's a right.</div>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">Request sent. We'll find you.</div>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top = my + 'px';
+    });
+
+    function animateRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) *.12;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    document.querySelectorAll('a, button, input, textarea, select').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.style.width = '6px';
+        cursor.style.height = '6px';
+        ring.style.width = '48px';
+        ring.style.height = '48px';
+        ring.style.borderColor = 'var(--red)';
+        ring.style.opacity = '1';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.style.width = '10px';
+        cursor.style.height = '10px';
+        ring.style.width = '32px';
+        ring.style.height = '32px';
+        ring.style.opacity = '0.5';
+      });
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    reveals.forEach(r => observer.observe(r));
+
+    // Form submit
+    function submitForm() {
+      const handle = document.getElementById('handle').value.trim();
+      const email = document.getElementById('email').value.trim();
+      if (!handle || !email) {
+        showToast('Fill in your handle and email first.');
+        return;
+      }
+      showToast('Request sent. We\'ll find you.');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Active nav highlight
+    const sections = document.querySelectorAll('section[id], div[id]');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 200) current = s.id;
+      });
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.style.color = a.getAttribute('href') === '#' + current ? 'var(--red)' : '';
+      });
+    });
+  </script>
+</body>
+</html>
